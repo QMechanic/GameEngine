@@ -13,7 +13,6 @@ class Input {
 public:
 	std::bitset<65536> key_states;
 	struct input_event ev;
-	ssize_t n;
 	int fd;
 
 	Input(const char *dev) {
@@ -29,8 +28,9 @@ public:
 	}
 
 	void poll(void) {
-		n = read(fd, &ev, sizeof(ev));
-		while (n != -1) {
+		while (true) {
+			ssize_t n = read(fd, &ev, sizeof(ev));
+			if (n == -1) break;
 			if (n != sizeof ev) {
 				errno = EIO;
 				fprintf(stderr, "I/O error when reading event device: %s\n", strerror(errno));
@@ -38,7 +38,6 @@ public:
 			}
 			if (ev.type == EV_KEY)
 				key_states[ev.code] = ev.value != 0; // this can be changed
-			n = read(fd, &ev, sizeof(ev));
 		}
 	}
 };

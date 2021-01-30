@@ -12,6 +12,8 @@
 
 #include <iostream> // std::cout std::cerr std::endl
 
+#include "matrix.hpp"
+
 // Context, class for handling everything for rendering and displaying the graphics
 class Canvas {
 public:
@@ -120,22 +122,26 @@ public:
 	}
 	void clear(void) {
 		for (int i = 0; i < pixel_count; i++)
-			fb[i] = 0;
+			buffer[i] = 0;
 	}
-	void set_pixel(int x, int y, uint32_t color) {
+	// Update this in future to take Vec2 input
+	inline void set_pixel(int x, int y, uint32_t color) {
+		x = (xres + (x % xres)) % xres;
+		y = (yres + (y % yres)) % yres;
 		if (x < 0 || x >= xres)
 			throw "a";
 		if (y < 0 || y >= yres)
 			throw 1;
 		buffer[x + y*width] = color;
 	}
+	// Update this in future to take Vec2 inputs
 	void line(int x0, int y0, int x1, int y1, uint32_t color) {
 		int dx =  abs(x1-x0), sx = x0<x1 ? 1 : -1;
 		int dy = -abs(y1-y0), sy = y0<y1 ? 1 : -1; 
 		int err = dx+dy, e2; /* error value e_xy */
 	
 		for(int i = 0; i < 10000; ++i){  /* loop */
-			set_pixel(x0,y0, color);
+			set_pixel(x0, y0, color);
 			if (x0==x1 && y0==y1) break;
 			e2 = 2*err;
 			if (e2 >= dy) { err += dy; x0 += sx; } /* e_xy+e_x > 0 */

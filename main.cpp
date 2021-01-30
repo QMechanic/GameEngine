@@ -1,5 +1,3 @@
-#pragma once
-
 #include <stdio.h> // puts printf fprint
 #include <stdlib.h> // EXIT_FAILURE
 #include <string.h> // memcpy()
@@ -17,51 +15,42 @@
 #include <chrono> // std::chrono::
 #include <thread> // std::this_thread::
 #include <bitset> // std::bitset
+#include <cmath> // std::sin std::cos
 
+#include "matrix.hpp"
 #include "canvas.hpp"
 #include "input.hpp"
+#include "renderer.hpp"
 
 int main(int argc, char const *argv[]) {
-	Canvas cx;
 	Input kbd("/dev/input/by-id/usb-SONiX_USB_Keyboard-event-kbd");
-
-	int x = 0;
-	int y = 0;
-	int x0 = 0;
-	int y0 = 0;
-	cx.clear();
+	Renderer renderer(1.3, 100);
 
 	while (true) {
 		auto time = std::chrono::high_resolution_clock::now();
 		kbd.poll();
 
 		if (kbd.key_states[KEY_W])
-			y -= 10;
+			renderer.camera.pos.y -= 5;
 		if (kbd.key_states[KEY_A])
-			x -= 10;
+			renderer.camera.pos.x -= 5;
 		if (kbd.key_states[KEY_S])
-			y += 10;
+			renderer.camera.pos.y += 5;
 		if (kbd.key_states[KEY_D])
-			x += 10;
-		if (kbd.key_states[KEY_U])
-			cx.update();
+			renderer.camera.pos.x += 5;
+		if (kbd.key_states[KEY_LEFT])
+			renderer.camera.dir.rot(0.05);
+		if (kbd.key_states[KEY_RIGHT])
+			renderer.camera.dir.rot(-0.05);
+		// if (kbd.key_states[KEY_U])
 		if (kbd.key_states[KEY_Q])
 			break;
 
-		// For wrapping and also because -1 % n == -1
-		x = (cx.xres + x) % cx.xres;
-		y = (cx.yres + y) % cx.yres;
+		renderer.cx.clear();
+		renderer.render();
+		renderer.cx.update();
 
-		if (kbd.key_states[KEY_SPACE]) {
-			cx.line(x0, y0, x, y, 0xFF0000);
-			x0 = x;
-			y0 = y;
-		}
-
-		cx.update();
-		// cx.fb[x + y*cx.width] = 0xFF;
-
-		time += std::chrono::milliseconds(100); // How often it should run
+		time += std::chrono::milliseconds(5); // How often it should run, this will be improved later
 		std::this_thread::sleep_until(time);
 	}
 
